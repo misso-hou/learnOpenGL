@@ -1,0 +1,28 @@
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 150
+
+Language: Cpp
+#格式设置
+# 允许格式化 Objective-C 代码
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+
+PointerAlignment: Left #指针符号在变量名的左边
+
+#明确指定标准库，外部库，项目内部库的头文件位置
+IncludeCategories:
+-	Regex:	'^<.*>'	#标准库
+ 	Priority:	1
+-	Regex:	'^"[^"]*\.h"'	#外部库头文件
+  Priority:	2
+-	Regex:	'^[A-Za-z0-9_/]*\.h$'	#项目内部头文件
+  Priority:	3
+
+SortIncludes: true #启用 #include 排序
+
+KeepEmptyLinesAtTheStartOfBlocks: true #在头文件和源代码之间保留空行
+
+AllowShortIfStatementsOnASingleLine: true
+IndentCaseLabels: true #将case标签缩进
