@@ -30,7 +30,7 @@ function Compile {
 function Format {
     CURRENT_DIR=$(pwd)
     echo "Current path is: $CURRENT_DIR"
-    cd "$CURRENT_DIR/.."
+    cd ".."
     find . -name "*.cpp" -or -name "*.h" -or -name "*.hpp" | xargs clang-format -i -style=file  #整个项目格式化
 }
 
@@ -50,8 +50,7 @@ compile)
     Compile
     ;;
 make)
-    Format
-    cd build
+    cd ../build
     make -j20
     cd ../shell_script
     ;;
