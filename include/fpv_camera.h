@@ -9,12 +9,12 @@ enum Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT };
 
 // Default camera values
 const float YAW = -90.0f;
-const float PITCH = 0.0f;
+const float PITCH = -45.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
-class Camera {
+class FpvCamera {
  public:
   // camera Attributes
   glm::vec3 position_;
@@ -31,7 +31,7 @@ class Camera {
   float zoom_;
 
  public:
-  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
+ FpvCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
     position_ = position;
     world_up_ = up;
     front_ = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -43,7 +43,7 @@ class Camera {
     updateCameraVectors();
   }
 
-  Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) {
+  FpvCamera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) {
     position_ = glm::vec3(posX, posY, posZ);
     world_up_ = glm::vec3(upX, upY, upZ);
     yaw_ = yaw;
@@ -54,7 +54,7 @@ class Camera {
     zoom_ = ZOOM;
     updateCameraVectors();
   }
-  ~Camera() {}
+  ~FpvCamera() {}
 
  public:
   glm::mat4 GetViewMatrix() { return glm::lookAt(position_, position_ + front_, up_); }
@@ -65,6 +65,7 @@ class Camera {
     if (direction == BACKWARD) position_ -= front_ * velocity;
     if (direction == LEFT) position_ -= right_ * velocity;
     if (direction == RIGHT) position_ += right_ * velocity;
+    position_.y = 0.25f;
   }
 
   // processes input received from a mouse input system. Expects the offset value in both the x and y direction.

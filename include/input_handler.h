@@ -4,11 +4,19 @@
 #include <glad/glad.h>
 // clang-format on
 #include <GLFW/glfw3.h>
-#include "camera.h"
+#include "fpv_camera.h"
+#include "modle_camera.h"
+
+// #define FPV
 
 namespace Callbacks {
 
-extern Camera camera;
+#ifdef FPV
+extern FpvCamera camera;
+#else
+extern ModelCamera camera;
+#endif
+
 extern GLFWwindow* window;
 extern bool leftMouseButtonPressed;
 extern float deltaTime;  // time between current frame and last frame

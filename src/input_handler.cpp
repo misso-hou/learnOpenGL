@@ -2,9 +2,16 @@
 
 #include <iostream>
 
+// #define FPV
+
 namespace Callbacks {
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+#ifdef FPV
+FpvCamera camera(glm::vec3(0.0f, 0.75f, -2.5f));
+#else
+ModelCamera camera(5.0f);
+#endif
+
 GLFWwindow* window;
 float deltaTime = 0.f;
 float lastFrame = 0.f;
