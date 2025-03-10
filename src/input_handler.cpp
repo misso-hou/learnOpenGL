@@ -7,7 +7,7 @@
 namespace Callbacks {
 
 #ifdef FPV
-FpvCamera camera(glm::vec3(0.0f, 0.75f, -2.5f));
+FpvCamera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 #else
 ModelCamera camera(5.0f);
 #endif
