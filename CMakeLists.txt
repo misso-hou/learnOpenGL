@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glm REQUIRED)
+find_package(assimp REQUIRED)
 
 # 添加头文件搜索路径
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -32,4 +33,4 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # 链接 GLFW 和 OpenGL 库
-target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL glm::glm)
+target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL glm::glm assimp)

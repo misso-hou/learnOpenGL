@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 // Default camera values
 // const float YAW = -90.0f;
 // const float PITCH = 0.0f;
@@ -35,7 +34,7 @@ class ModelCamera {
   float zoom_;
 
  public:
- ModelCamera(float dis, glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
+  ModelCamera(float dis, glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
     // position_ = position;
     distance_ = dis;
     world_up_ = up;
@@ -67,8 +66,8 @@ class ModelCamera {
     xoffset *= mouse_sensitivity_;
     yoffset *= mouse_sensitivity_;
 
-    yaw_ -= xoffset;
-    pitch_ += yoffset;
+    yaw_ += xoffset;
+    pitch_ -= yoffset;
 
     // make sure that when pitch is out of bounds, screen doesn't get flipped
     if (constrainPitch) {

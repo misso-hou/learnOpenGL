@@ -31,7 +31,7 @@ class FpvCamera {
   float zoom_;
 
  public:
- FpvCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
+  FpvCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f)) {
     position_ = position;
     world_up_ = up;
     front_ = glm::vec3(0.0f, 0.0f, -1.0f);
