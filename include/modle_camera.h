@@ -13,7 +13,7 @@
 // const float ZOOM = 45.0f;
 // const float distance = 5.0f;  // 相机与目标点的初始距离
 const float minDistance = 1.0f;
-const float maxDistance = 10.0f;
+const float maxDistance = 50.0f;
 
 class ModelCamera {
  public:

@@ -32,3 +32,18 @@ void ExtractVertexsNormal(float* vertices, int arraySize, int stride, int count,
     }
   }
 }
+
+
+void ExtractVertexsTexture(float* vertices, int arraySize, int stride, int count, int offset, vector<Vertex>& vertexs) {
+  int groups = arraySize / stride;
+  if (vertexs.size() == 0) {
+    std::cerr << "未定义顶点size!!! " << std::endl;
+    assert(vertexs.size() != 0);
+  }
+  for (int i = 0; i < groups; i++) {
+    int index = i * stride + offset;
+    for (int j = 0; j < count; j++) {
+      vertexs[i].TexCoords[j] = vertices[index + j];
+    }
+  }
+}
