@@ -19,6 +19,9 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <list> 
+#include <memory> //unique_ptr
+
 using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
@@ -27,32 +30,53 @@ const int max_count = 1;
 class Model 
 {
 public:
+    Model(){};
+    list<unique_ptr<Model>> children;
+    Model* parent = nullptr;
+    
     // model data 
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh>    meshes;
     string directory;
     bool gammaCorrection;
-    int count_;
-    int mesh_count_;
 
     // constructor, expects a filepath to a 3D model.
     Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
     { 
-        count_ = 0;
-        mesh_count_ = 0;
+
         loadModel(path);
     }
 
     // draws the model, and thus all its meshes
+    // void Draw(Shader &shader)
+    // {
+    //     for(unsigned int i = 0; i < meshes.size(); i++)
+    //         meshes[i].Draw(shader);
+    // }
+
     void Draw(Shader &shader)
     {
-        meshes[0].Draw(shader);
-        meshes[1].Draw(shader);
-        // for(unsigned int i = 0; i < meshes.size(); i++)
-        //     meshes[i].Draw(shader);
+
+        for(unsigned int i = 0; i < meshes.size(); i++)
+            meshes[i].Draw(shader);
+        for(const auto& child : children){
+            if(child){
+                child->Draw(shader);
+            }
+        }
     }
-    
+
+
 private:
+    glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4& aiMat) {
+        return glm::mat4(
+            aiMat.a1, aiMat.b1, aiMat.c1, aiMat.d1,
+            aiMat.a2, aiMat.b2, aiMat.c2, aiMat.d2,
+            aiMat.a3, aiMat.b3, aiMat.c3, aiMat.d3,
+            aiMat.a4, aiMat.b4, aiMat.c4, aiMat.d4
+        );
+    }
+
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path)
     {
@@ -69,74 +93,54 @@ private:
         directory = path.substr(0, path.find_last_of('/'));
 
         // process ASSIMP's root node recursively
-        int test = 1;
-        processNode(scene->mRootNode, scene,test);
-        // aiNode* child_node = scene->mRootNode->mChildren[0];
-        // processNode(child_node, scene);
-        // aiNode* grandson_node = child_node->mChildren[0];
-        // processNode(grandson_node, scene);
+        // processNode(scene->mRootNode, scene,0);
+        processNode(*this,scene->mRootNode, scene,0);
     }
 
-    // // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-    // void processNode(aiNode *node, const aiScene *scene,int mesh_n)
-    // {
-    //     // std::cout<< "debug -> curent level:" << count_ << std::endl;
-    //     std::cout<< "debug -> mesh count:" << mesh_n << std::endl;
-
-    //     // process each mesh located at the current node
-    //     for(unsigned int i = 0; i < node->mNumMeshes; i++)
-    //     {
-    //         // the node object only contains indices to index the actual objects in the scene. 
-    //         // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-    //         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    //         meshes.push_back(processMesh(mesh, scene));
-    //         // mesh_n++;
-    //     }
-    //     // // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
-    //     // if(mesh_count_ < 2){
-    //     //     count_++;
-    //     //     for(unsigned int i = 0; i < node->mNumChildren; i++)
-    //     //     {
-    //     //         processNode(node->mChildren[i], scene);
-    //     //     }
-    //     // }else{
-    //     //     return;
-    //     // }
-    //     // count_++;
-    //     for(unsigned int i = 0; i < node->mNumChildren; i++)
-    //     {
-    //         processNode(node->mChildren[i], scene,mesh_n+1);
-    //     }
-    // }
-
-
-    void processNode(aiNode *node, const aiScene *scene, int currentLevel)
+    void processNode(aiNode *node, const aiScene *scene, int currentLevel, int childId = -1, aiMatrix4x4 transform = aiMatrix4x4())
     {
-        // std::cout << "debug -> mesh count: " << currentLevel << std::endl;
-        // if(currentLevel>2){
-        //     return;
-        // }
+        // 计算当前节点相对于世界坐标系的变换矩阵
+        aiMatrix4x4 globalTransform = transform * node->mTransformation;
+        auto global_trans = aiMatrix4x4ToGlm(globalTransform);
+        cout << "01----当前层级:" << currentLevel << "&& 子节点索引值:" << childId << endl;
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene));
-            mesh_count_++;
+            meshes.push_back(processMesh(mesh, scene,global_trans));
+            cout << "02----当前层级:" << currentLevel << "&& 子节点索引值:" << childId <<" && mesh数量: " << meshes.size() << endl;
         }
-        std::cout << "Entering node at level1111111: " << currentLevel << std::endl;
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
-            currentLevel++;
-            std::cout << "Exiting node at level222222: " << currentLevel << std::endl;
-            processNode(node->mChildren[i], scene, currentLevel);
+            processNode(node->mChildren[i], scene, currentLevel+1, (int)i, globalTransform);
         }
-        std::cout << "Exiting node at level333333: " << currentLevel << std::endl;
+    }
+
+
+    void processNode(Model& self_model,aiNode *node, const aiScene *scene, int currentLevel, int childId = -1, aiMatrix4x4 transform = aiMatrix4x4())
+    {
+        // 计算当前节点相对于世界坐标系的变换矩阵
+        aiMatrix4x4 globalTransform = transform * node->mTransformation;
+        auto global_trans = aiMatrix4x4ToGlm(globalTransform);
+        cout << "01----当前层级:" << currentLevel << "&& 子节点索引值:" << childId << endl;
+        for (unsigned int i = 0; i < node->mNumMeshes; i++)
+        {
+            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            self_model.meshes.push_back(processMesh(mesh, scene,global_trans));
+            cout << "02----当前层级:" << currentLevel << "&& 子节点索引值:" << childId <<" && mesh数量: " << meshes.size() << endl;
+        }
+        for (unsigned int i = 0; i < node->mNumChildren; i++)
+        {
+            children.emplace_back(make_unique<Model>());
+            // 获取最后一个元素的引用
+            std::unique_ptr<Model>& lastPtr = children.back();
+            // 解引用 unique_ptr 以获取 classA 对象
+            Model& lastObj = *lastPtr;
+            processNode(lastObj, node->mChildren[i], scene, currentLevel+1, (int)i, globalTransform);
+        }
     }
     
-    
-    
-    
 
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene)
+    Mesh processMesh(aiMesh *mesh, const aiScene *scene, const glm::mat4& transform)
     {
         // data to fill
         vector<Vertex> vertices;
@@ -152,14 +156,18 @@ private:
             vector.x = mesh->mVertices[i].x;
             vector.y = mesh->mVertices[i].y;
             vector.z = mesh->mVertices[i].z;
-            vertex.Position = vector;
+            glm::vec4 trans_vec = transform*glm::vec4(vector, 1.0f);
+            vertex.Position = glm::vec3(trans_vec.x,trans_vec.y,trans_vec.z);
             // normals
             if (mesh->HasNormals())
             {
                 vector.x = mesh->mNormals[i].x;
                 vector.y = mesh->mNormals[i].y;
                 vector.z = mesh->mNormals[i].z;
-                vertex.Normal = vector;
+                // vertex.Normal = vector;
+                glm::mat4 normalMat = glm::transpose(glm::inverse(transform));
+                glm::mat3 new_normal_mat = glm::mat3(normalMat);
+                vertex.Normal = glm::normalize(new_normal_mat * vector);
             }
             // texture coordinates
             if(mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?

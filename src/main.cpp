@@ -20,6 +20,9 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 
+// lighting
+glm::vec3 lightPos(0.0f, 5.0f, 0.0f);
+
 int main()
 {
 
@@ -32,9 +35,9 @@ int main()
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
+      std::cout << "Failed to create GLFW window" << std::endl;
+      glfwTerminate();
+      return -1;
     }
 
     glfwMakeContextCurrent(window);
@@ -55,13 +58,13 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
 
-    Shader ourShader("../shader/model_load.vs", "../shader/model_load.fs");
+    Shader ourShader("../shader/1.colors.vs", "../shader/1.colors.fs");
 
-    Model ourModel("../resources/objects/robot/test03.glb");
+    Model ourModel("../resources/objects/robot/sg07.fbx");
 
     
     // draw in wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -76,6 +79,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ourShader.use();
+        ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        ourShader.setVec3("lightPos", lightPos);
+        ourShader.setVec3("viewPos", Callbacks::camera.position_);
 
         glm::mat4 projection = glm::perspective(glm::radians(Callbacks::camera.zoom_), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = Callbacks::camera.GetViewMatrix();
@@ -84,10 +91,11 @@ int main()
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));	// it's a bit too big for our scene, so scale it down
+        model = glm::rotate(model,glm::radians((float)glfwGetTime()*45.0f),glm::vec3(0.f,1.0f,0.f));
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
-        std::cout << "test mesh count:" << ourModel.mesh_count_ << endl;
+        // std::cout << "test mesh count:" << ourModel.mesh_count_ << endl;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
